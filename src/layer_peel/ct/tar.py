@@ -1,5 +1,5 @@
 import tarfile
-from typing import Generator, Any, Iterable, Tuple, Iterator, Optional
+from typing import Generator, Any, Iterable, Iterator
 
 DEFAULT_BLOCK_SIZE = 65536
 
@@ -24,8 +24,8 @@ class GeneratorReader:
 
 def stream_untar(
     chunks: Iterable[bytes],
-    block_size: Optional[int] = None,
-) -> Generator[Tuple[bytes, int, Iterator[bytes]], Any, None]:
+    block_size: int | None = None,
+) -> Generator[tuple[bytes, int, Iterator[bytes]], Any, None]:
     with tarfile.open(
         fileobj=GeneratorReader(iter(chunks)),  # type: ignore
         mode="r|*",

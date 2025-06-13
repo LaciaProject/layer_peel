@@ -30,7 +30,7 @@
 
 ### 核心功能
 - **递归解压缩**: 自动处理嵌套的压缩文件，支持任意深度
-- **多格式支持**: 
+- **多格式支持**:
   - ZIP 文件 (.zip)
   - TAR 归档 (.tar)
   - Gzip 压缩的 TAR (.tgz, .tar.gz)
@@ -109,4 +109,4 @@
 
 - 📋 [提交 Issue](https://github.com/yourusername/layer-peel/issues)
 - 💬 [参与讨论](https://github.com/yourusername/layer-peel/discussions)
-- 📧 发送邮件到 contributors@layer-peel.dev 
+- 📧 发送邮件到 contributors@layer-peel.dev

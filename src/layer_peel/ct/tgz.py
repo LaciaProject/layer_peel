@@ -1,4 +1,4 @@
-from typing import Generator, Any, Iterable, Iterator, Optional
+from typing import Generator, Any, Iterable, Iterator
 
 from .tar import stream_untar
 
@@ -7,7 +7,7 @@ DEFAULT_BLOCK_SIZE = 65536
 
 def stream_untgz(
     chunks: Iterable[bytes],
-    block_size: Optional[int] = None,
+    block_size: int | None = None,
 ) -> Generator[tuple[bytes, int, Iterator[bytes]], Any, None]:
     """
     A streaming function for extracting tgz files.

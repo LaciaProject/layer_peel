@@ -1,4 +1,4 @@
-from typing import Any, Generator, Iterable, Iterator, Optional
+from typing import Any, Generator, Iterable, Iterator
 
 from stream_unzip import stream_unzip as _stream_unzip
 
@@ -10,7 +10,7 @@ DEFAULT_BLOCK_SIZE = 65536
 
 def stream_unzip(
     chunks: Iterable[bytes],
-    block_size: Optional[int] = None,
+    block_size: int | None = None,
 ) -> Generator[tuple[bytes, int, Iterator[bytes]], Any, None]:
     """
     A streaming function for extracting zip files.

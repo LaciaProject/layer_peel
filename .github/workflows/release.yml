@@ -102,4 +102,4 @@ jobs:
         draft: false
         prerelease: false
         files: dist/*
-        generate_release_notes: true 
+        generate_release_notes: true

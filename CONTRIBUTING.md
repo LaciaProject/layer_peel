@@ -26,10 +26,10 @@
    python -m venv venv
    source venv/bin/activate  # Linux/Mac
    # 或者 venv\Scripts\activate  # Windows
-   
+
    # 安装开发依赖
    pip install -e ".[dev,test,docs]"
-   
+
    # 安装 pre-commit 钩子
    pre-commit install
    ```
@@ -38,11 +38,11 @@
    ```bash
    # 运行测试确保环境正常
    pytest
-   
+
    # 检查代码格式和质量
    ruff check src/ tests/
    ruff format --check src/ tests/
-   
+
    # 类型检查
    mypy src/
    ```
@@ -199,17 +199,17 @@ def extract(
 ) -> Generator[tuple[Iterator[bytes], str, Optional[str]], Any, None]:
     """
     递归解压缩多层嵌套的压缩文件
-    
+
     Args:
         data: 输入数据，可以是字节流迭代器或文件对象
         source_path: 源文件路径，用于标识和日志记录
         chunk_size: 读取数据的块大小，默认64KB
         depth: 最大递归深度，防止无限递归，默认5层
-        
+
     Yields:
-        tuple[Iterator[bytes], str, Optional[str]]: 
+        tuple[Iterator[bytes], str, Optional[str]]:
             文件数据流、路径和MIME类型
-            
+
     Raises:
         MaxDepthExceededError: 超过最大递归深度
         ExtractionError: 解压缩过程中发生错误
@@ -312,4 +312,4 @@ def extract(
 
 ---
 
-再次感谢您的贡献！每一个贡献都让 Layer Peel 变得更好。 
+再次感谢您的贡献！每一个贡献都让 Layer Peel 变得更好。

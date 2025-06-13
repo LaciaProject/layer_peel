@@ -41,7 +41,6 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "chardet>=5.2.0",
-    "opendal>=0.45.20",
     "py7zr>=1.0.0",
     "python-magic>=0.4.27",
     "rarfile>=4.2",
@@ -110,7 +109,6 @@ module = [
     "py7zr.*",
     "rarfile.*",
     "stream_unzip.*",
-    "opendal.*",
 ]
 ignore_missing_imports = true
 

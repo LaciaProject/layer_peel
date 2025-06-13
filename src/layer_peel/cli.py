@@ -106,8 +106,7 @@ def extract_to_files(
     config = ExtractConfig(
         chunk_size=chunk_size,
         lifespan_manager=lifespan,
-        extract_funcs=extract_funcs,
-        format_path=lambda x: f"{x}!",
+        extract_funcs=extract_funcs,  # type: ignore[arg-type]
     )
 
     try:

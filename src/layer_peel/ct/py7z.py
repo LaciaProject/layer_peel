@@ -1,5 +1,5 @@
 import io
-from typing import Generator, Iterable, Optional, Iterator
+from typing import Generator, Iterable, Iterator, Any
 
 
 from py7zr import properties, SevenZipFile, exceptions
@@ -42,8 +42,8 @@ def is_7z_file(data: bytes) -> bool:
 
 def stream_un7z(
     chunks: Iterable[bytes],
-    block_size: Optional[int] = None,
-) -> Generator[tuple[bytes, int, Iterator[bytes]], None, None]:
+    block_size: int | None = None,
+) -> Generator[tuple[bytes, int, Iterator[bytes]], Any, None]:
     with SevenZipFile(
         iterable_to_bytesio(iter(chunks)),  # type: ignore
         mode="r",

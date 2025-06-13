@@ -1,5 +1,5 @@
 from io import BytesIO
-from typing import Any, Generator, Iterable, Iterator, Optional
+from typing import Any, Generator, Iterable, Iterator
 
 import rarfile
 
@@ -18,7 +18,7 @@ def large_iterator_to_io(iterator):
 
 def stream_unrar(
     chunks: Iterable[bytes],
-    block_size: Optional[int] = None,
+    block_size: int | None = None,
 ) -> Generator[tuple[bytes, int, Iterator[bytes]], Any, None]:
     with rarfile.RarFile(large_iterator_to_io(chunks)) as rf:
         for member in rf.infolist():
