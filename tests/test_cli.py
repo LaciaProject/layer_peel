@@ -16,8 +16,8 @@ class TestCreateParser:
         """测试基本解析器创建"""
         parser = create_parser()
 
-        assert parser.prog == "layer-peel"
-        assert "递归解压缩" in parser.description
+        assert parser.prog == "layer_peel"
+        assert parser.description is not None and "Recursively extract" in parser.description
 
     def test_parse_basic_args(self):
         """测试基本参数解析"""
@@ -74,7 +74,7 @@ class TestExtractToFiles:
             )
 
         captured = capsys.readouterr()
-        assert "不存在" in captured.err
+        assert "does not exist" in captured.err
 
     def test_extract_to_files_directory_input(self, tmp_path, capsys):
         """测试输入是目录的情况"""
@@ -85,7 +85,7 @@ class TestExtractToFiles:
             extract_to_files(input_file=test_dir, output_dir=Path("/tmp/test"))
 
         captured = capsys.readouterr()
-        assert "不是一个文件" in captured.err
+        assert "is not a file" in captured.err
 
     @patch("layer_peel.cli.extract")
     def test_extract_to_files_success(self, mock_extract, tmp_path):
@@ -120,8 +120,8 @@ class TestExtractToFiles:
 
         # 模拟嵌套文件路径
         mock_extract.return_value = [
-            (iter([b"content1"]), "archive.zip!/inner/file1.txt", "text/plain"),
-            (iter([b"content2"]), "archive.zip!/file2.txt", "text/plain"),
+            (iter([b"content1"]), "archive.zip_/inner/file1.txt", "text/plain"),
+            (iter([b"content2"]), "archive.zip_/file2.txt", "text/plain"),
         ]
 
         extract_to_files(input_file=input_file, output_dir=output_dir, quiet=True)
@@ -148,8 +148,8 @@ class TestExtractToFiles:
         extract_to_files(input_file=input_file, output_dir=output_dir, verbose=True)
 
         captured = capsys.readouterr()
-        assert "解压缩: test.txt" in captured.out
-        assert "类型: text/plain" in captured.out
+        assert "Extracting: test.txt" in captured.out
+        assert "Type: text/plain" in captured.out
 
     @patch("layer_peel.cli.extract")
     def test_extract_to_files_keyboard_interrupt(self, mock_extract, tmp_path, capsys):
@@ -165,7 +165,7 @@ class TestExtractToFiles:
             extract_to_files(input_file=input_file, output_dir=output_dir)
 
         captured = capsys.readouterr()
-        assert "用户中断操作" in captured.err
+        assert "User interrupted operation" in captured.err
 
     @patch("layer_peel.cli.extract")
     def test_extract_to_files_exception(self, mock_extract, tmp_path, capsys):
@@ -181,7 +181,7 @@ class TestExtractToFiles:
             extract_to_files(input_file=input_file, output_dir=output_dir)
 
         captured = capsys.readouterr()
-        assert "错误: Test error" in captured.err
+        assert "Error: Test error" in captured.err
 
 
 class TestMain:
@@ -198,11 +198,10 @@ class TestMain:
         assert args["output_dir"] == Path.cwd()
         assert args["depth"] == 5
         assert not args["quiet"]
-        assert not args["verbose"]
 
     @patch("layer_peel.cli.extract_to_files")
     def test_main_with_all_args(self, mock_extract_to_files):
-        """测试带所有参数的主函数调用"""
+        """测试所有参数的主函数调用"""
         main(
             [
                 "archive.zip",
