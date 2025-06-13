@@ -14,6 +14,7 @@ from .utils import (
     fix_encoding,
     get_mime_type,
     RawIOBase,
+    lifespan,
 )
 from .types import ExtractConfig
 from .exceptions import ExtractionError
@@ -21,6 +22,23 @@ from .exceptions import ExtractionError
 
 # Setup logging
 logger = logging.getLogger(__name__)
+
+# Default configuration - will be set after import to avoid circular imports
+_default_config: Optional[ExtractConfig] = None
+
+
+def _get_default_config() -> ExtractConfig:
+    """Get or create default configuration"""
+    global _default_config
+    if _default_config is None:
+        from .ct import extract_funcs
+
+        _default_config = ExtractConfig(
+            chunk_size=65536,
+            lifespan_manager=lifespan,
+            extract_funcs=extract_funcs,  # type: ignore[arg-type]
+        )
+    return _default_config
 
 
 def _extract(
@@ -76,8 +94,8 @@ def _extract(
 def extract(
     data: Union[Iterator[bytes], RawIOBase],
     source_path: str,
-    depth: int,
-    config: ExtractConfig,
+    depth: int = 5,
+    config: Optional[ExtractConfig] = None,
 ) -> Generator[tuple[Iterator[bytes], str, Optional[str]], Any, None]:
     """
     Recursively extract multi-layer nested compressed files
@@ -89,9 +107,8 @@ def extract(
     Args:
         data: Input data, can be byte stream iterator or file object
         source_path: Source file path, used for identification and logging
-        chunk_size: Chunk size for reading data, default 64KB
-        lifespan_manager: Lifespan manager for progress tracking
         depth: Maximum recursion depth to prevent infinite recursion, default 5 layers
+        config: ExtractConfig object for configuration. If None, uses default configuration.
 
     Yields:
         tuple[Iterator[bytes], str, Optional[str]]:
@@ -100,7 +117,6 @@ def extract(
             - Optional[str]: MIME type of the file (if detectable)
 
     Raises:
-        MaxDepthExceededError: Maximum recursion depth exceeded
         ExtractionError: Error occurred during extraction
 
     Example:
@@ -109,6 +125,9 @@ def extract(
         ...         print(f"Extracted file: {file_path}")
         ...         # Process file data...
     """
+    # Use default config if none provided
+    if config is None:
+        config = _get_default_config()
 
     temp_chunk = b""
     file_type = None

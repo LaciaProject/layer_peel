@@ -48,13 +48,39 @@ uvx layer-peel --help
 ```python
 from layer_peel import extract
 
-# 解压缩嵌套的压缩文件
+# 简单使用 - 使用默认配置
 with open('nested_archive.zip', 'rb') as f:
     for file_data, file_path, mime_type in extract(f, 'nested_archive.zip'):
         print(f"提取文件: {file_path}")
 
         # 保存文件
-        with open(file_path.replace('!', '_'), 'wb') as output:
+        with open(file_path, 'wb') as output:
+            for chunk in file_data:
+                output.write(chunk)
+```
+
+**高级用法 - 自定义配置:**
+
+```python
+from layer_peel import extract
+from layer_peel.types import ExtractConfig
+from layer_peel.utils import lifespan
+from layer_peel.ct import extract_funcs
+
+# 创建自定义配置
+config = ExtractConfig(
+    chunk_size=32768,  # 自定义块大小
+    lifespan_manager=lifespan,
+    extract_funcs=extract_funcs,
+)
+
+# 使用自定义配置
+with open('nested_archive.zip', 'rb') as f:
+    for file_data, file_path, mime_type in extract(f, 'nested_archive.zip', depth=10, config=config):
+        print(f"提取文件: {file_path}")
+
+        # 保存文件
+        with open(file_path, 'wb') as output:
             for chunk in file_data:
                 output.write(chunk)
 ```
@@ -80,28 +106,67 @@ layer-peel archive.zip --verbose
 
 ## 📖 详细文档
 
+### 重要说明
+
+`extract` 函数现在提供了两种使用方式：
+
+1. **简单使用**: 直接调用 `extract(data, source_path)` 使用默认配置
+2. **高级使用**: 传入自定义的 `ExtractConfig` 对象进行精确控制
+
+这样设计的优势：
+
+1. **易于上手**: 新用户可以直接使用，无需了解配置细节
+2. **高度可配置**: 高级用户可以精确控制解压缩行为
+3. **向后兼容**: 保持API的简洁性
+4. **更好的扩展性**: 未来可以轻松添加新的配置选项
+
 ### API 参考
 
-#### `extract(data, source_path, chunk_size=65536, lifespan_manager=lifespan, depth=5)`
+#### `extract(data, source_path, depth=5, config=None)`
 
 递归解压缩多层嵌套的压缩文件。
 
 **参数:**
 - `data`: 输入数据，可以是字节流迭代器或文件对象
 - `source_path`: 源文件路径，用于标识和日志记录
-- `chunk_size`: 读取数据的块大小，默认64KB
-- `lifespan_manager`: 生命周期管理器，用于进度跟踪
 - `depth`: 最大递归深度，防止无限递归，默认5层
+- `config`: ExtractConfig配置对象，可选。如果为None，使用默认配置
 
 **返回:**
 生成器，产生 `(file_data, file_path, mime_type)` 元组
 
 **示例:**
+
+**简单使用:**
 ```python
-import layer_peel
+from layer_peel import extract
 
 with open('complex_archive.zip', 'rb') as f:
-    for file_data, file_path, mime_type in layer_peel.extract(f, 'complex_archive.zip'):
+    for file_data, file_path, mime_type in extract(f, 'complex_archive.zip'):
+        print(f"文件: {file_path}")
+        print(f"类型: {mime_type}")
+
+        # 处理文件数据
+        content = b''.join(file_data)
+        print(f"大小: {len(content)} 字节")
+```
+
+**自定义配置:**
+```python
+from layer_peel import extract
+from layer_peel.types import ExtractConfig
+from layer_peel.utils import lifespan
+from layer_peel.ct import extract_funcs
+
+# 创建配置
+config = ExtractConfig(
+    chunk_size=65536,
+    lifespan_manager=lifespan,
+    extract_funcs=extract_funcs,
+)
+
+with open('complex_archive.zip', 'rb') as f:
+    for file_data, file_path, mime_type in extract(f, 'complex_archive.zip', depth=5, config=config):
         print(f"文件: {file_path}")
         print(f"类型: {mime_type}")
 
@@ -122,11 +187,30 @@ with open('complex_archive.zip', 'rb') as f:
 
 ### 高级用法
 
+#### ExtractConfig 配置说明
+
+`ExtractConfig` 是一个数据类，用于配置解压缩行为：
+
+```python
+from layer_peel.types import ExtractConfig
+from layer_peel.utils import lifespan
+from layer_peel.ct import extract_funcs
+
+config = ExtractConfig(
+    chunk_size=65536,           # 读取数据的块大小，默认64KB
+    lifespan_manager=lifespan,  # 生命周期管理器，用于进度跟踪
+    extract_funcs=extract_funcs, # 支持的压缩格式提取函数映射
+    format_path=lambda x: f"{x}!"  # 可选：路径格式化函数
+)
+```
+
 #### 自定义生命周期管理器
 
 ```python
 from contextlib import contextmanager
 from layer_peel import extract
+from layer_peel.types import ExtractConfig
+from layer_peel.ct import extract_funcs
 
 @contextmanager
 def custom_progress(path):
@@ -136,10 +220,15 @@ def custom_progress(path):
     finally:
         print(f"✅ 完成处理: {path}")
 
+# 创建自定义配置
+config = ExtractConfig(
+    chunk_size=32768,  # 自定义块大小
+    lifespan_manager=custom_progress,  # 自定义生命周期管理器
+    extract_funcs=extract_funcs,
+)
+
 with open('archive.zip', 'rb') as f:
-    for file_data, file_path, mime_type in extract(
-        f, 'archive.zip', lifespan_manager=custom_progress
-    ):
+    for file_data, file_path, mime_type in extract(f, 'archive.zip', depth=10, config=config):
         # 处理文件...
         pass
 ```
@@ -154,6 +243,7 @@ raw_filename = b'\xe4\xb8\xad\xe6\x96\x87.txt'
 decoded_filename = fix_encoding(raw_filename)
 print(decoded_filename)  # 输出: 中文.txt
 ```
+
 
 #### 检测文件类型
 
