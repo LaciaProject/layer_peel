@@ -35,6 +35,12 @@ jobs:
       run: |
         brew install libmagic
 
+    - name: Install system dependencies (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        # Skip python-magic on Windows due to compatibility issues
+        echo "Skipping libmagic installation on Windows"
+
     - name: Install the project
       run: uv sync --all-extras --dev
 

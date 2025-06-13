@@ -9,11 +9,22 @@ from io import BytesIO
 import mimetypes
 import chardet
 from contextlib import contextmanager
-import magic
 import logging
 
 from .types import RawIOBase
 from .exceptions import EncodingError, FileAccessError
+
+# Try to import magic, but handle Windows compatibility issues
+try:
+    import magic
+
+    MAGIC_AVAILABLE = True
+except (ImportError, OSError) as e:
+    MAGIC_AVAILABLE = False
+    magic = None  # type: ignore[assignment]
+    logging.getLogger(__name__).warning(
+        f"python-magic not available: {e}. MIME type detection will use fallback methods."
+    )
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -73,14 +84,65 @@ def get_mime_type(data: bytes) -> str:
     if not data:
         return "application/octet-stream"
 
-    try:
-        mime = magic.Magic(mime=True)
-        mime_type = mime.from_buffer(data)
-        logger.debug(f"Detected MIME type: {mime_type}")
-        return mime_type
-    except Exception as e:
-        logger.warning(f"MIME type detection failed: {e}")
+    # Use magic library if available
+    if MAGIC_AVAILABLE and magic is not None:
+        try:
+            mime_detector = magic.Magic(mime=True)
+            mime_type = mime_detector.from_buffer(data)
+            logger.debug(f"Detected MIME type: {mime_type}")
+            return mime_type
+        except Exception as e:
+            logger.warning(f"MIME type detection with magic failed: {e}")
+
+    # Fallback to signature-based detection
+    mime_type = _detect_mime_by_signature(data)
+    logger.debug(f"Detected MIME type (fallback): {mime_type}")
+    return mime_type
+
+
+def _detect_mime_by_signature(data: bytes) -> str:
+    """
+    Detect MIME type by file signature (magic bytes)
+
+    Args:
+        data: Byte data to detect
+
+    Returns:
+        str: Detected MIME type
+    """
+    if not data:
         return "application/octet-stream"
+
+    # Common file signatures
+    signatures = {
+        b"PK\x03\x04": "application/zip",
+        b"PK\x05\x06": "application/zip",
+        b"PK\x07\x08": "application/zip",
+        b"\x1f\x8b\x08": "application/gzip",
+        b"7z\xbc\xaf\x27\x1c": "application/x-7z-compressed",
+        b"Rar!\x1a\x07\x00": "application/vnd.rar",
+        b"Rar!\x1a\x07\x01\x00": "application/vnd.rar",
+        b"ustar\x00": "application/x-tar",
+        b"ustar  \x00": "application/x-tar",
+        b"\x42\x5a\x68": "application/x-bzip2",
+        b"\xfd7zXZ\x00": "application/x-xz",
+        b"\x89PNG\r\n\x1a\n": "image/png",
+        b"\xff\xd8\xff": "image/jpeg",
+        b"GIF87a": "image/gif",
+        b"GIF89a": "image/gif",
+        b"%PDF-": "application/pdf",
+    }
+
+    # Check for exact matches first
+    for signature, mime_type in signatures.items():
+        if data.startswith(signature):
+            return mime_type
+
+    # Check for partial matches (for tar files with different headers)
+    if b"ustar" in data[:512]:  # tar header is within first 512 bytes
+        return "application/x-tar"
+
+    return "application/octet-stream"
 
 
 def get_extension(mime_type: str) -> Optional[str]:

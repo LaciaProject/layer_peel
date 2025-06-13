@@ -77,13 +77,29 @@ class TestGetMimeType:
 
         assert mime_type == "application/octet-stream"
 
-    @patch("layer_peel.utils.magic.Magic")
+    @patch("layer_peel.utils.MAGIC_AVAILABLE", True)
+    @patch("layer_peel.utils.magic")
     def test_get_mime_type_with_error(self, mock_magic):
         """测试MIME检测错误处理"""
-        mock_magic.return_value.from_buffer.side_effect = Exception("Magic failed")
+        mock_magic.Magic.return_value.from_buffer.side_effect = Exception(
+            "Magic failed"
+        )
 
         mime_type = get_mime_type(b"some data")
 
+        assert mime_type == "application/octet-stream"
+
+    @patch("layer_peel.utils.MAGIC_AVAILABLE", False)
+    def test_get_mime_type_fallback(self):
+        """测试MIME检测回退机制"""
+        # 测试ZIP文件签名
+        zip_data = b"PK\x03\x04" + b"\x00" * 100
+        mime_type = get_mime_type(zip_data)
+        assert mime_type == "application/zip"
+
+        # 测试未知数据
+        unknown_data = b"unknown data"
+        mime_type = get_mime_type(unknown_data)
         assert mime_type == "application/octet-stream"
 
 

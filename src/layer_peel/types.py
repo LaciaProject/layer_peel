@@ -12,9 +12,11 @@ from dataclasses import dataclass
 
 @runtime_checkable
 class RawIOBase(Protocol):
-    def read(self, size: int | None = -1, /) -> bytes: ...
+    def read(self, size: int | None = -1, /) -> bytes:
+        ...
 
-    def seek(self, pos: int, whence: int = 0, /) -> int: ...
+    def seek(self, pos: int, whence: int = 0, /) -> int:
+        ...
 
 
 def _default_format_path(x: str) -> str:
