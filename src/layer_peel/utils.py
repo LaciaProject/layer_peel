@@ -195,13 +195,17 @@ def fix_encoding(file_name: bytes) -> str:
         detected_encoding = detected.get("encoding")
         confidence = detected.get("confidence", 0)
 
-        logger.debug(f"Detected encoding: {detected_encoding} (confidence: {confidence})")
+        logger.debug(
+            f"Detected encoding: {detected_encoding} (confidence: {confidence})"
+        )
 
         if detected_encoding and confidence > 0.7:
             try:
                 return file_name.decode(detected_encoding)
             except (UnicodeDecodeError, LookupError) as e:
-                logger.warning(f"Decoding with detected encoding {detected_encoding} failed: {e}")
+                logger.warning(
+                    f"Decoding with detected encoding {detected_encoding} failed: {e}"
+                )
 
         # Try common encodings
         for encoding in ["utf-8", "gbk", "gb2312", "latin1"]:
@@ -213,7 +217,9 @@ def fix_encoding(file_name: bytes) -> str:
         # Finally use error ignore mode
         result = file_name.decode("utf-8", errors="ignore")
         if result:
-            logger.warning(f"Decoded filename using ignore error mode: {file_name!r} -> {result!r}")
+            logger.warning(
+                f"Decoded filename using ignore error mode: {file_name!r} -> {result!r}"
+            )
             return result
 
         # If still fails, return hex representation
@@ -249,4 +255,3 @@ def lifespan(path: str):
         raise
     finally:
         logger.info(f"Completed extraction: {path}")
-
