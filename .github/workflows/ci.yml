@@ -82,12 +82,14 @@ jobs:
 
     - name: Run security checks with bandit
       run: |
-        uv run bandit -r src/ -f json -o bandit-report.json || true
-        uv run bandit -r src/
+        source .venv/bin/activate
+        bandit -r src/ -f json -o bandit-report.json || true
+        bandit -r src/
 
     - name: Check dependencies with safety
       run: |
-        uv run safety check
+        source .venv/bin/activate
+        safety check
 
   build:
     runs-on: ubuntu-latest
