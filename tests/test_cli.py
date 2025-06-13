@@ -17,7 +17,10 @@ class TestCreateParser:
         parser = create_parser()
 
         assert parser.prog == "layer_peel"
-        assert parser.description is not None and "Recursively extract" in parser.description
+        assert (
+            parser.description is not None
+            and "Recursively extract" in parser.description
+        )
 
     def test_parse_basic_args(self):
         """测试基本参数解析"""

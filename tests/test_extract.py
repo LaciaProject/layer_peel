@@ -23,7 +23,7 @@ class TestExtract:
         # 深度为0时应该直接返回文件，不抛出异常
         results = list(extract(data, "test.txt", depth=0))
         assert len(results) == 1
-        
+
         file_data, file_path, mime_type = results[0]
         assert file_path == "test.txt"
         assert b"".join(file_data) == b"test data"
@@ -112,7 +112,7 @@ class TestExtract:
 
         # 创建自定义配置，但移除ZIP处理器以避免实际解压缩
         custom_extract_funcs = {}  # 空的提取函数字典
-        
+
         config = ExtractConfig(
             chunk_size=65536,
             lifespan_manager=custom_lifespan,
@@ -147,7 +147,7 @@ class TestExtractErrorHandling:
         # 负数深度应该直接返回文件，不抛出异常
         results = list(extract(data, "test.txt", depth=-1))
         assert len(results) == 1
-        
+
         file_data, file_path, mime_type = results[0]
         assert file_path == "test.txt"
         assert b"".join(file_data) == b"test"
