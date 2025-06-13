@@ -78,6 +78,7 @@ jobs:
     - name: Create virtual environment and install dependencies
       run: |
         uv venv --python 3.11
+        uv pip install -e ".[dev]"
         uv pip install bandit[toml] safety
 
     - name: Run security checks with bandit
@@ -108,6 +109,7 @@ jobs:
     - name: Create virtual environment and install build dependencies
       run: |
         uv venv --python 3.11
+        uv pip install -e ".[dev]"
         uv pip install build twine
 
     - name: Build package
